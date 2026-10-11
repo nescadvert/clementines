@@ -39,9 +39,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# database
-prisma/*.db
-prisma/*.db-journal
 
 # agents
 .agents/

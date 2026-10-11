@@ -3,14 +3,37 @@ import CheckoutClient from "@/components/CheckoutClient";
 
 export const instant = false;
 
+const DEFAULT_POINTS = [
+  { id: "p1", name: "Bastia (Place Saint-Nicolas)", lat: 42.7028, lng: 9.4500 },
+  { id: "p2", name: "Ajaccio (Marché)", lat: 41.9267, lng: 8.7369 },
+  { id: "p3", name: "Porto-Vecchio (Port)", lat: 41.5910, lng: 9.2795 },
+  { id: "p4", name: "Corte (Centre-ville)", lat: 42.3094, lng: 9.1490 }
+];
+
+const DEFAULT_PRODUCTS = [
+  { id: "prod1", name: "Clémentines de Corse", description: "au kg", price: 2.50 },
+  { id: "prod2", name: "Clémentines de Corse", description: "caisse de 6kg", price: 12.00 },
+  { id: "prod3", name: "Noisettes", description: "au kg", price: 5.00 }
+];
+
 export default async function Home() {
-  const points = await prisma.deliveryPoint.findMany();
-  const products = await prisma.product.findMany({ where: { active: true } });
+  let points = [];
+  let products = [];
+  
+  try {
+    points = await prisma.deliveryPoint.findMany();
+    products = await prisma.product.findMany({ where: { active: true } });
+  } catch (err) {
+    console.error("Erreur lecture base de données :", err);
+  }
+
+  // Si la base est vide ou en cours d'initialisation, on affiche les données par défaut
+  const finalPoints = points.length > 0 ? points : DEFAULT_POINTS;
+  const finalProducts = products.length > 0 ? products : DEFAULT_PRODUCTS;
   
   return (
     <div className="min-h-screen bg-slate-50 font-[family-name:var(--font-geist-sans)] text-slate-800">
-      {/* Mobile-first layout: 1 column everywhere, full width */}
-      <CheckoutClient points={points} products={products} />
+      <CheckoutClient points={finalPoints} products={finalProducts} />
     </div>
   );
 }
