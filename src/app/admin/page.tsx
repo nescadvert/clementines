@@ -79,53 +79,80 @@ export default async function AdminPage() {
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-8 overflow-x-auto">
           <h2 className="text-xl font-black text-slate-800 mb-4">Commandes Reçues ({orders.length})</h2>
           
-          <table className="w-full text-left border-collapse min-w-[750px]">
+          <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-bold text-slate-400 tracking-wider">
                 <th className="p-4">Client</th>
                 <th className="p-4">Téléphone</th>
                 <th className="p-4">Lieu de livraison</th>
-                <th className="p-4">Date de passage choisie</th>
-                <th className="p-4">Détail cagettes</th>
+                <th className="p-4">Date choisie</th>
+                <th className="p-4">Détail</th>
                 <th className="p-4 text-right">Total</th>
+                <th className="p-4">Rappel en 1 clic</th>
                 <th className="p-4">Commandé le</th>
               </tr>
             </thead>
             <tbody>
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 font-medium">Aucune commande pour le moment.</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-400 font-medium">Aucune commande pour le moment.</td>
                 </tr>
               ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                    <td className="p-4 font-bold text-slate-800">{order.customerName}</td>
-                    <td className="p-4 text-slate-600 font-mono text-sm">{order.customerPhone}</td>
-                    <td className="p-4">
-                      <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-full font-bold">
-                        {order.deliveryPoint?.name || "Point inconnu"}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      {order.deliveryDate ? (
-                        <span className="inline-block bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2.5 py-1 rounded-lg font-bold">
-                          📅 {order.deliveryDate}
+                orders.map((order) => {
+                  const cleanPhone = order.customerPhone.replace(/[\s.-]/g, '');
+                  const intlPhone = cleanPhone.startsWith('0') ? '33' + cleanPhone.slice(1) : cleanPhone;
+                  const reminderText = `Bonjour ${order.customerName} ! Petit rappel : votre commande de clémentines (${order.totalPrice}€) vous attend aujourd'hui à ${order.deliveryPoint?.name || "votre point de retrait"}. À tout à l'heure ! EARL Mangani`;
+
+                  return (
+                    <tr key={order.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                      <td className="p-4 font-bold text-slate-800">{order.customerName}</td>
+                      <td className="p-4 text-slate-600 font-mono text-sm">{order.customerPhone}</td>
+                      <td className="p-4">
+                        <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-full font-bold">
+                          {order.deliveryPoint?.name || "Point inconnu"}
                         </span>
-                      ) : (
-                        <span className="text-slate-400 text-xs italic">Non précisée</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-sm text-slate-700">
-                      {order.items?.map((item: any) => (
-                        <div key={item.id}>
-                          <strong>{item.quantity}x</strong> {item.product?.name}
+                      </td>
+                      <td className="p-4">
+                        {order.deliveryDate ? (
+                          <span className="inline-block bg-amber-50 text-amber-900 border border-amber-200 text-xs px-2.5 py-1 rounded-lg font-bold">
+                            📅 {order.deliveryDate}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs italic">Non précisée</span>
+                        )}
+                      </td>
+                      <td className="p-4 text-sm text-slate-700">
+                        {order.items?.map((item: any) => (
+                          <div key={item.id}>
+                            <strong>{item.quantity}x</strong> {item.product?.name}
+                          </div>
+                        ))}
+                      </td>
+                      <td className="p-4 text-right font-black text-green-600 text-base">{order.totalPrice} €</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <a
+                            href={`sms:${cleanPhone}?body=${encodeURIComponent(reminderText)}`}
+                            className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-colors"
+                            title="Ouvrir l'application SMS"
+                          >
+                            💬 SMS
+                          </a>
+                          <a
+                            href={`https://wa.me/${intlPhone}?text=${encodeURIComponent(reminderText)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-2.5 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-colors"
+                            title="Ouvrir WhatsApp"
+                          >
+                            🟢 WhatsApp
+                          </a>
                         </div>
-                      ))}
-                    </td>
-                    <td className="p-4 text-right font-black text-green-600 text-base">{order.totalPrice} €</td>
-                    <td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="p-4 text-xs text-slate-400">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

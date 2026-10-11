@@ -30,10 +30,30 @@ interface Product {
   price: number;
 }
 
-function getNextDeliveryDates(dayOfWeek: number = 2, timeSlot: string = "16h00 - 18h00", count: number = 3): string[] {
-  const dates: string[] = [];
+function parseTimeSlot(slot: string = "16h00 - 18h00") {
+  const match = slot.match(/(\d{1,2})h(\d{2})?\s*-\s*(\d{1,2})h(\d{2})?/i);
+  if (match) {
+    return {
+      startH: parseInt(match[1]),
+      startM: match[2] ? parseInt(match[2]) : 0,
+      endH: parseInt(match[3]),
+      endM: match[4] ? parseInt(match[4]) : 0,
+    };
+  }
+  return { startH: 16, startM: 0, endH: 18, endM: 0 };
+}
+
+interface DeliveryOption {
+  label: string;
+  startDate: Date;
+  endDate: Date;
+}
+
+function getNextDeliveryDates(dayOfWeek: number = 2, timeSlot: string = "16h00 - 18h00", count: number = 3): DeliveryOption[] {
+  const dates: DeliveryOption[] = [];
   const now = new Date();
   const check = new Date(now);
+  const times = parseTimeSlot(timeSlot);
 
   const formatter = new Intl.DateTimeFormat('fr-FR', {
     weekday: 'long',
@@ -45,12 +65,74 @@ function getNextDeliveryDates(dayOfWeek: number = 2, timeSlot: string = "16h00 -
     if (check.getDay() === dayOfWeek) {
       const rawDate = formatter.format(check);
       const formatted = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
-      dates.push(`${formatted} (${timeSlot})`);
+      
+      const startDate = new Date(check);
+      startDate.setHours(times.startH, times.startM, 0, 0);
+      
+      const endDate = new Date(check);
+      endDate.setHours(times.endH, times.endM, 0, 0);
+
+      dates.push({
+        label: `${formatted} (${timeSlot})`,
+        startDate,
+        endDate
+      });
     }
     check.setDate(check.getDate() + 1);
   }
 
   return dates;
+}
+
+function formatIcsDate(date: Date): string {
+  const pad = (n: number) => (n < 10 ? "0" + n : n.toString());
+  return (
+    date.getFullYear() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) +
+    "T" +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    "00"
+  );
+}
+
+function downloadIcsReminder(pointName: string, option: DeliveryOption | undefined, total: number) {
+  const nowStr = formatIcsDate(new Date());
+  const startStr = option ? formatIcsDate(option.startDate) : nowStr;
+  const endStr = option ? formatIcsDate(option.endDate) : nowStr;
+
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//EARL Mangani//Clementines//FR",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `SUMMARY:🍊 Retrait Clémentines (EARL Mangani)`,
+    `DESCRIPTION:Retrait de votre commande au camion à ${pointName}.\\nMontant à régler sur place : ${total}€.\\nPréparez l'appoint si possible !`,
+    `LOCATION:${pointName}`,
+    `DTSTART:${startStr}`,
+    `DTEND:${endStr}`,
+    `DTSTAMP:${nowStr}`,
+    "BEGIN:VALARM",
+    "TRIGGER:-PT2H",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:Rappel : retrait de vos clémentines dans 2h !",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "rappel-clementines.ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export default function CheckoutClient({ points, products }: { points: Point[], products: Product[] }) {
@@ -65,7 +147,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
   
   const point = points.find(p => p.id === selectedPoint);
   const availableDates = point ? getNextDeliveryDates(point.dayOfWeek ?? 2, point.timeSlot ?? "16h00 - 18h00", 3) : [];
-  const activeDeliveryDate = chosenDate || (availableDates.length > 0 ? availableDates[0] : "");
+  const activeDeliveryDate = chosenDate || (availableDates.length > 0 ? availableDates[0].label : "");
 
   const total = Object.entries(cart).reduce((sum, [productId, qty]) => {
     const p = products.find(p => p.id === productId);
@@ -79,7 +161,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
     if (targetPoint) {
       const dates = getNextDeliveryDates(targetPoint.dayOfWeek ?? 2, targetPoint.timeSlot ?? "16h00 - 18h00", 3);
       if (dates.length > 0) {
-        setChosenDate(dates[0]);
+        setChosenDate(dates[0].label);
       }
     }
   };
@@ -107,27 +189,43 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
   };
 
   if (success) {
+    const selectedOption = availableDates.find(d => d.label === activeDeliveryDate);
+
     return (
       <div className="flex flex-col h-screen w-screen bg-gradient-to-b from-green-50 to-white p-6 items-center justify-center text-center">
-        <div className="bg-white p-8 sm:p-10 rounded-[2rem] shadow-2xl shadow-green-100/50 border border-green-100 max-w-md w-full transform transition-all animate-in zoom-in-95 duration-500">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl">
+        <div className="bg-white p-6 sm:p-10 rounded-[2rem] shadow-2xl shadow-green-100/50 border border-green-100 max-w-md w-full transform transition-all animate-in zoom-in-95 duration-500 max-h-[92vh] overflow-y-auto">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl sm:text-4xl">
             ✅
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-green-800 mb-3 tracking-tight">Merci {name.split(' ')[0]} !</h2>
-          <p className="text-slate-600 mb-4 text-base">Votre commande a bien été enregistrée pour une remise à <strong className="text-slate-800">{point?.name}</strong>.</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-green-800 mb-2 tracking-tight">Merci {name.split(' ')[0]} !</h2>
+          <p className="text-slate-600 mb-4 text-sm sm:text-base">Votre commande a bien été enregistrée pour une remise à <strong className="text-slate-800">{point?.name}</strong>.</p>
           
-          <div className="bg-amber-50 rounded-2xl p-4 mb-4 border border-amber-200 text-left">
-            <p className="text-xs font-bold text-amber-800/70 uppercase tracking-wider mb-1">📅 Date de votre passage</p>
-            <p className="font-black text-slate-800 text-base">{activeDeliveryDate}</p>
+          <div className="bg-amber-50 rounded-2xl p-3.5 mb-3.5 border border-amber-200 text-left">
+            <p className="text-[10px] font-bold text-amber-800/70 uppercase tracking-wider mb-0.5">📅 Date de votre passage</p>
+            <p className="font-black text-slate-800 text-sm sm:text-base">{activeDeliveryDate}</p>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100 text-left">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Montant à prévoir</p>
-            <p className="text-3xl font-black text-slate-800">{total} €</p>
-            <p className="text-xs text-slate-500 mt-1.5">Paiement sur place le jour J. Préparez l'appoint si possible ! 🍊</p>
+          <div className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-100 text-left">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Montant à prévoir</p>
+            <p className="text-2xl sm:text-3xl font-black text-slate-800">{total} €</p>
+            <p className="text-[11px] text-slate-500 mt-1">Paiement sur place le jour J. Préparez l'appoint si possible ! 🍊</p>
           </div>
 
-          <button onClick={() => window.location.reload()} className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold transition-transform active:scale-95 shadow-lg shadow-green-200">
+          {/* Bouton Rappel Téléphone / Calendrier */}
+          <div className="mb-5 space-y-2">
+            <button
+              onClick={() => downloadIcsReminder(point?.name || "Point de retrait", selectedOption, total)}
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-5 py-3.5 rounded-xl font-bold transition-transform active:scale-95 text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-200"
+            >
+              <span className="text-lg">📲</span>
+              <span>Ajouter un rappel sur mon téléphone</span>
+            </button>
+            <p className="text-[10px] text-slate-400 leading-tight">
+              🔔 Votre calendrier vous sonnera automatiquement 2h avant le passage du camion !
+            </p>
+          </div>
+
+          <button onClick={() => window.location.reload()} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 rounded-xl font-bold transition-colors text-xs sm:text-sm">
             Retour à la carte
           </button>
         </div>
@@ -211,20 +309,20 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
                 📅 Choisissez votre date de passage ({availableDates.length} options)
               </label>
               <div className="space-y-2">
-                {availableDates.map((dateStr, idx) => {
-                  const isSelected = activeDeliveryDate === dateStr;
+                {availableDates.map((opt, idx) => {
+                  const isSelected = activeDeliveryDate === opt.label;
                   return (
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => setChosenDate(dateStr)}
+                      onClick={() => setChosenDate(opt.label)}
                       className={`w-full p-3 rounded-xl border-2 text-left font-bold text-xs sm:text-sm flex items-center justify-between transition-all ${
                         isSelected
                           ? "border-orange-500 bg-orange-50/80 text-orange-950 shadow-sm"
                           : "border-slate-100 bg-slate-50 text-slate-600 hover:border-orange-200"
                       }`}
                     >
-                      <span>{dateStr}</span>
+                      <span>{opt.label}</span>
                       {isSelected ? (
                         <span className="w-5 h-5 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs">✓</span>
                       ) : (
