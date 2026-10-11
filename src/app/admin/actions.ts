@@ -51,6 +51,36 @@ export async function createDeliveryPoint(data: {
   }
 }
 
+export async function updateDeliveryPoint(
+  id: string,
+  data: {
+    name: string;
+    lat: number;
+    lng: number;
+    dayOfWeek: number;
+    timeSlot: string;
+  }
+) {
+  try {
+    await prisma.deliveryPoint.update({
+      where: { id },
+      data: {
+        name: data.name,
+        lat: data.lat,
+        lng: data.lng,
+        dayOfWeek: data.dayOfWeek,
+        timeSlot: data.timeSlot,
+      },
+    });
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Erreur modification point :", err);
+    return { success: false, error: err.message };
+  }
+}
+
 export async function deleteDeliveryPoint(id: string) {
   try {
     await prisma.deliveryPoint.delete({
