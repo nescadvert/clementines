@@ -130,3 +130,16 @@ export async function deleteProduct(id: string) {
     return { success: false, error: err.message };
   }
 }
+
+export async function deleteOrder(id: string) {
+  try {
+    await prisma.order.delete({
+      where: { id },
+    });
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Erreur suppression commande :", err);
+    return { success: false, error: err.message };
+  }
+}
