@@ -7,6 +7,8 @@ import PointManager from "./PointManager";
 import ProductManager from "./ProductManager";
 import BroadcastManager from "./BroadcastManager";
 import OrderList from "./OrderList";
+import WebhookConfig from "./WebhookConfig";
+
 
 export const instant = false;
 
@@ -71,8 +73,12 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        {/* Module d'automatisation Make (SMS & Webhooks) */}
+        <WebhookConfig currentWebhookUrl={process.env.MAKE_WEBHOOK_URL} />
+
         {/* 1. Module de Relance par Tournée */}
         <BroadcastManager orders={orders} points={points} />
+
 
         {/* 2. Liste des Commandes Reçues (avec filtres, tri, masquage des passées et suppression) */}
         <OrderList orders={orders} products={products} points={points} />

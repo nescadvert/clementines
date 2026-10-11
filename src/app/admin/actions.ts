@@ -143,3 +143,37 @@ export async function deleteOrder(id: string) {
     return { success: false, error: err.message };
   }
 }
+
+export async function testMakeWebhook() {
+  const url = process.env.MAKE_WEBHOOK_URL;
+  if (!url) {
+    return { success: false, error: "Variable MAKE_WEBHOOK_URL non configurée." };
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "TEST_ORDER",
+        orderId: "test_12345",
+        customerName: "Marie Dupont (Test)",
+        customerPhone: "0600000000",
+        totalPrice: 25,
+        deliveryPoint: "Place de la Mairie (Test)",
+        deliveryDate: "Mardi prochain (16h30 - 18h00)",
+        items: "1x Plateau 5kg Clémentines",
+        createdAt: new Date().toISOString()
+      }),
+    });
+
+    if (!res.ok) {
+      return { success: false, error: `Make a répondu avec le statut ${res.status}` };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+

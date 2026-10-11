@@ -214,6 +214,14 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
           <h2 className="text-2xl sm:text-3xl font-black text-green-800 mb-2 tracking-tight">Merci {name.split(' ')[0]} !</h2>
           <p className="text-slate-600 mb-4 text-sm sm:text-base">Votre commande a bien été enregistrée pour une remise à <strong className="text-slate-800">{point?.name}</strong>.</p>
           
+          <div className="bg-emerald-50 rounded-2xl p-3.5 mb-3.5 border border-emerald-200 text-left flex items-start gap-2.5">
+            <span className="text-xl">📩</span>
+            <div>
+              <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Confirmation enregistrée</p>
+              <p className="text-xs text-emerald-700 mt-0.5">Un SMS récapitulatif va vous être envoyé au <strong>{phone}</strong>.</p>
+            </div>
+          </div>
+
           <div className="bg-amber-50 rounded-2xl p-3.5 mb-3.5 border border-amber-200 text-left">
             <p className="text-[10px] font-bold text-amber-800/70 uppercase tracking-wider mb-0.5">📅 Date de votre passage</p>
             <p className="font-black text-slate-800 text-sm sm:text-base">{activeDeliveryDate}</p>
@@ -224,6 +232,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
             <p className="text-2xl sm:text-3xl font-black text-slate-800">{total} €</p>
             <p className="text-[11px] text-slate-500 mt-1">Paiement sur place le jour J. Préparez l'appoint si possible ! 🍊</p>
           </div>
+
 
           {/* Boutons Rappel Calendrier */}
           <div className="mb-5 space-y-2.5">

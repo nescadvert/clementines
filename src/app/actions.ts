@@ -47,21 +47,76 @@ export async function createOrder(data: {
       }
     });
 
-    deliveryPointName = order.deliveryPoint?.name || deliveryPointName;
+    // Récupérer le nom des produits commandés pour le SMS
+    const itemDetails = Object.entries(data.items)
+      .map(([productId, quantity]) => {
+        const prod = products.find(p => p.id === productId);
+        return `${quantity}x ${prod?.name || 'Produit'}`;
+      })
+      .join(', ');
+
+    // 🔗 DÉCLENCHEMENT DU SCÉNARIO MAKE (Webhook)
+    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL;
+    if (makeWebhookUrl) {
+      try {
+        await fetch(makeWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'NEW_ORDER',
+            orderId: order.id,
+            customerName: data.name,
+            customerPhone: data.phone,
+            totalPrice: totalPrice,
+            deliveryPoint: deliveryPointName,
+            deliveryDate: data.deliveryDate || 'Prochaine tournée',
+            items: itemDetails,
+            createdAt: new Date().toISOString()
+          })
+        });
+        console.log("✅ Webhook Make déclenché avec succès pour la commande", order.id);
+      } catch (webhookErr) {
+        console.error("⚠️ Erreur lors de l'appel au Webhook Make :", webhookErr);
+      }
+    }
   } catch (err) {
     console.warn("Prisma non disponible pour sauvegarder l'ordre (mode prévisualisation / Vercel éphémère) :", err);
     // Calcul de secours
     for (const [productId, quantity] of Object.entries(data.items)) {
       totalPrice += (FALLBACK_PRICES[productId] || 10) * quantity;
     }
+
+    // Même en mode secours, tenter d'envoyer à Make si configuré
+    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL;
+    if (makeWebhookUrl) {
+      try {
+        await fetch(makeWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'NEW_ORDER',
+            orderId: 'preview_' + Date.now(),
+            customerName: data.name,
+            customerPhone: data.phone,
+            totalPrice: totalPrice,
+            deliveryPoint: deliveryPointName,
+            deliveryDate: data.deliveryDate || 'Prochaine tournée',
+            items: Object.entries(data.items).map(([id, q]) => `${q}x ${id}`).join(', '),
+            createdAt: new Date().toISOString()
+          })
+        });
+      } catch (e) {
+        console.error("Erreur Webhook Make secours :", e);
+      }
+    }
   }
 
-  // Simulation notification avec date
+  // Simulation notification console
   const dateInfo = data.deliveryDate ? `pour le ${data.deliveryDate}` : "";
   console.log(`\n======================================`);
-  console.log(`📱 SMS ACHETEUR (${data.phone}) : Bonjour ${data.name}, commande de ${totalPrice}€ validée à ${deliveryPointName} ${dateInfo} !`);
-  console.log(`📱 SMS VENDEUR : Nouvelle commande de ${data.name} (${data.phone}) - ${deliveryPointName} ${dateInfo} - Total: ${totalPrice}€`);
+  console.log(`📱 COMMANDE VALIDÉE : ${data.name} (${data.phone}) - ${deliveryPointName} ${dateInfo} - Total: ${totalPrice}€`);
   console.log(`======================================\n`);
 
   return { success: true };
 }
+
