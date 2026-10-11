@@ -16,9 +16,12 @@ const DEFAULT_PRODUCTS = [
   { id: "prod3", name: "Noisettes", description: "au kg", price: 5.00 }
 ];
 
+type Point = { id: string; name: string; lat: number; lng: number };
+type Product = { id: string; name: string; description: string | null; price: number };
+
 export default async function Home() {
-  let points = [];
-  let products = [];
+  let points: Point[] = [];
+  let products: Product[] = [];
   
   try {
     points = await prisma.deliveryPoint.findMany();
