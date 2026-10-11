@@ -97,7 +97,20 @@ function formatIcsDate(date: Date): string {
   );
 }
 
-function downloadIcsReminder(pointName: string, option: DeliveryOption | undefined, total: number) {
+function getGoogleCalendarUrl(pointName: string, option: DeliveryOption | undefined, total: number): string {
+  if (!option) return "#";
+  const formatUtcIso = (d: Date) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const start = formatUtcIso(option.startDate);
+  const end = formatUtcIso(option.endDate);
+  const title = encodeURIComponent("🍊 Retrait Clémentines (EARL Mangani)");
+  const details = encodeURIComponent(
+    `Retrait de votre commande de clémentines au camion à ${pointName}.\nMontant à régler sur place : ${total}€.\nPréparez l'appoint si possible ! 🍊`
+  );
+  const location = encodeURIComponent(pointName);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}&location=${location}`;
+}
+
+function openAppleIcsReminder(pointName: string, option: DeliveryOption | undefined, total: number) {
   const nowStr = formatIcsDate(new Date());
   const startStr = option ? formatIcsDate(option.startDate) : nowStr;
   const endStr = option ? formatIcsDate(option.endDate) : nowStr;
@@ -132,8 +145,9 @@ function downloadIcsReminder(pointName: string, option: DeliveryOption | undefin
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
+
 
 export default function CheckoutClient({ points, products }: { points: Point[], products: Product[] }) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
@@ -211,19 +225,40 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
             <p className="text-[11px] text-slate-500 mt-1">Paiement sur place le jour J. Préparez l'appoint si possible ! 🍊</p>
           </div>
 
-          {/* Bouton Rappel Téléphone / Calendrier */}
-          <div className="mb-5 space-y-2">
-            <button
-              onClick={() => downloadIcsReminder(point?.name || "Point de retrait", selectedOption, total)}
-              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-5 py-3.5 rounded-xl font-bold transition-transform active:scale-95 text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-200"
-            >
-              <span className="text-lg">📲</span>
-              <span>Ajouter un rappel sur mon téléphone</span>
-            </button>
-            <p className="text-[10px] text-slate-400 leading-tight">
-              🔔 Votre calendrier vous sonnera automatiquement 2h avant le passage du camion !
+          {/* Boutons Rappel Calendrier */}
+          <div className="mb-5 space-y-2.5">
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider text-center">
+              🔔 Ajouter un rappel dans votre agenda
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* Google Agenda (Android & Ordinateur) */}
+              <a
+                href={getGoogleCalendarUrl(point?.name || "Point de retrait", selectedOption, total)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 rounded-xl font-bold transition-transform active:scale-95 text-xs flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span>📅</span>
+                <span>Google Agenda (Android)</span>
+              </a>
+
+              {/* Apple Calendar / iPhone */}
+              <button
+                type="button"
+                onClick={() => openAppleIcsReminder(point?.name || "Point de retrait", selectedOption, total)}
+                className="bg-slate-900 hover:bg-black text-white px-3 py-3 rounded-xl font-bold transition-transform active:scale-95 text-xs flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span>🍏</span>
+                <span>Apple Calendrier (iPhone)</span>
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-tight text-center">
+              💡 <em>Sur iPhone, touchez le fichier téléchargé pour l'ajouter en 1 clic dans votre application Calendrier.</em>
             </p>
           </div>
+
 
           <button onClick={() => window.location.reload()} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 rounded-xl font-bold transition-colors text-xs sm:text-sm">
             Retour à la carte
