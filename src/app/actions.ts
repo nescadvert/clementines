@@ -12,6 +12,7 @@ export async function createOrder(data: {
   phone: string;
   items: Record<string, number>;
   deliveryPointId: string;
+  deliveryDate?: string;
 }) {
   let totalPrice = 0;
   let deliveryPointName = "Point de livraison";
@@ -33,6 +34,7 @@ export async function createOrder(data: {
         customerPhone: data.phone,
         totalPrice: totalPrice,
         deliveryPointId: data.deliveryPointId,
+        deliveryDate: data.deliveryDate || null,
         items: {
           create: Object.entries(data.items).map(([productId, quantity]) => ({
             productId,
@@ -54,10 +56,11 @@ export async function createOrder(data: {
     }
   }
 
-  // Simulation notification
+  // Simulation notification avec date
+  const dateInfo = data.deliveryDate ? `pour le ${data.deliveryDate}` : "";
   console.log(`\n======================================`);
-  console.log(`📱 SMS ACHETEUR (${data.phone}) : Bonjour ${data.name}, commande de ${totalPrice}€ validée à ${deliveryPointName} !`);
-  console.log(`📱 SMS VENDEUR : Nouvelle commande de ${data.name} (${data.phone}) - Total: ${totalPrice}€`);
+  console.log(`📱 SMS ACHETEUR (${data.phone}) : Bonjour ${data.name}, commande de ${totalPrice}€ validée à ${deliveryPointName} ${dateInfo} !`);
+  console.log(`📱 SMS VENDEUR : Nouvelle commande de ${data.name} (${data.phone}) - ${deliveryPointName} ${dateInfo} - Total: ${totalPrice}€`);
   console.log(`======================================\n`);
 
   return { success: true };

@@ -19,6 +19,8 @@ interface Point {
   name: string;
   lat: number;
   lng: number;
+  dayOfWeek?: number;
+  timeSlot?: string;
 }
 
 interface Product {
@@ -28,16 +30,42 @@ interface Product {
   price: number;
 }
 
+function getNextDeliveryDates(dayOfWeek: number = 2, timeSlot: string = "16h00 - 18h00", count: number = 3): string[] {
+  const dates: string[] = [];
+  const now = new Date();
+  const check = new Date(now);
+
+  const formatter = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
+
+  while (dates.length < count) {
+    if (check.getDay() === dayOfWeek) {
+      const rawDate = formatter.format(check);
+      const formatted = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
+      dates.push(`${formatted} (${timeSlot})`);
+    }
+    check.setDate(check.getDate() + 1);
+  }
+
+  return dates;
+}
+
 export default function CheckoutClient({ points, products }: { points: Point[], products: Product[] }) {
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [chosenDate, setChosenDate] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(true);
   
   const point = points.find(p => p.id === selectedPoint);
+  const availableDates = point ? getNextDeliveryDates(point.dayOfWeek ?? 2, point.timeSlot ?? "16h00 - 18h00", 3) : [];
+  const activeDeliveryDate = chosenDate || (availableDates.length > 0 ? availableDates[0] : "");
 
   const total = Object.entries(cart).reduce((sum, [productId, qty]) => {
     const p = products.find(p => p.id === productId);
@@ -47,6 +75,13 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
   const handleMapValidation = (pointId: string, finalCart: Record<string, number>) => {
     setSelectedPoint(pointId);
     setCart(finalCart);
+    const targetPoint = points.find(p => p.id === pointId);
+    if (targetPoint) {
+      const dates = getNextDeliveryDates(targetPoint.dayOfWeek ?? 2, targetPoint.timeSlot ?? "16h00 - 18h00", 3);
+      if (dates.length > 0) {
+        setChosenDate(dates[0]);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +94,8 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
         name,
         phone,
         items: cart,
-        deliveryPointId: selectedPoint
+        deliveryPointId: selectedPoint,
+        deliveryDate: activeDeliveryDate
       });
       setSuccess(true);
     } catch (err) {
@@ -73,17 +109,22 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
   if (success) {
     return (
       <div className="flex flex-col h-screen w-screen bg-gradient-to-b from-green-50 to-white p-6 items-center justify-center text-center">
-        <div className="bg-white p-10 rounded-[2rem] shadow-2xl shadow-green-100/50 border border-green-100 max-w-md w-full transform transition-all animate-in zoom-in-95 duration-500">
-          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-5xl">✅</span>
+        <div className="bg-white p-8 sm:p-10 rounded-[2rem] shadow-2xl shadow-green-100/50 border border-green-100 max-w-md w-full transform transition-all animate-in zoom-in-95 duration-500">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5 text-4xl">
+            ✅
           </div>
-          <h2 className="text-3xl font-black text-green-800 mb-4 tracking-tight">C'est noté, {name.split(' ')[0]} !</h2>
-          <p className="text-slate-600 mb-6 text-lg leading-relaxed">Votre commande a bien été enregistrée pour une remise à <strong className="text-slate-800">{point?.name}</strong>.</p>
+          <h2 className="text-2xl sm:text-3xl font-black text-green-800 mb-3 tracking-tight">Merci {name.split(' ')[0]} !</h2>
+          <p className="text-slate-600 mb-4 text-base">Votre commande a bien été enregistrée pour une remise à <strong className="text-slate-800">{point?.name}</strong>.</p>
           
-          <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-100 text-left">
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Montant à prévoir</p>
-            <p className="text-4xl font-black text-slate-800">{total} €</p>
-            <p className="text-sm text-slate-500 mt-2">Paiement sur place. Préparez l'appoint si possible ! 🍊</p>
+          <div className="bg-amber-50 rounded-2xl p-4 mb-4 border border-amber-200 text-left">
+            <p className="text-xs font-bold text-amber-800/70 uppercase tracking-wider mb-1">📅 Date de votre passage</p>
+            <p className="font-black text-slate-800 text-base">{activeDeliveryDate}</p>
+          </div>
+
+          <div className="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100 text-left">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Montant à prévoir</p>
+            <p className="text-3xl font-black text-slate-800">{total} €</p>
+            <p className="text-xs text-slate-500 mt-1.5">Paiement sur place le jour J. Préparez l'appoint si possible ! 🍊</p>
           </div>
 
           <button onClick={() => window.location.reload()} className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold transition-transform active:scale-95 shadow-lg shadow-green-200">
@@ -133,7 +174,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
             </p>
             <p className="flex items-start gap-2.5">
               <span className="w-5 h-5 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5">3</span>
-              <span>Rentrez votre nom, prénom et téléphone et <strong>faites-vous livrer !</strong></span>
+              <span>Choisissez votre <strong>date de passage</strong> et validez !</span>
             </p>
           </div>
         )}
@@ -147,7 +188,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
       {/* Modale Formulaire */}
       {selectedPoint && total > 0 && (
         <div className="absolute inset-0 z-[1000] bg-black/40 backdrop-blur-sm flex items-end md:items-center justify-center sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative animate-in slide-in-from-bottom-full duration-300">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative animate-in slide-in-from-bottom-full duration-300 max-h-[90vh] overflow-y-auto">
             
             <button 
               onClick={() => setSelectedPoint(null)}
@@ -156,14 +197,48 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
               ✕
             </button>
 
-            <h2 className="text-2xl font-black text-slate-800 mb-6 pr-8">Finalisez votre commande</h2>
+            <h2 className="text-2xl font-black text-slate-800 mb-5 pr-8">Finalisez votre commande</h2>
             
-            <div className="bg-green-50 rounded-2xl p-4 flex flex-col gap-1 text-green-800 mb-4 border border-green-100">
-              <p className="text-xs font-bold uppercase tracking-wider text-green-600/80">Lieu de livraison</p>
-              <p className="font-bold flex items-center gap-2">📍 {point?.name}</p>
+            {/* Lieu */}
+            <div className="bg-green-50 rounded-2xl p-3.5 flex flex-col gap-1 text-green-800 mb-4 border border-green-100">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-green-600/80">Lieu de livraison</p>
+              <p className="font-bold flex items-center gap-2 text-sm sm:text-base">📍 {point?.name}</p>
             </div>
 
-            <div className="mb-6">
+            {/* Sélecteur des 3 prochaines dates de livraison */}
+            <div className="mb-5">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                📅 Choisissez votre date de passage ({availableDates.length} options)
+              </label>
+              <div className="space-y-2">
+                {availableDates.map((dateStr, idx) => {
+                  const isSelected = activeDeliveryDate === dateStr;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setChosenDate(dateStr)}
+                      className={`w-full p-3 rounded-xl border-2 text-left font-bold text-xs sm:text-sm flex items-center justify-between transition-all ${
+                        isSelected
+                          ? "border-orange-500 bg-orange-50/80 text-orange-950 shadow-sm"
+                          : "border-slate-100 bg-slate-50 text-slate-600 hover:border-orange-200"
+                      }`}
+                    >
+                      <span>{dateStr}</span>
+                      {isSelected ? (
+                        <span className="w-5 h-5 bg-orange-600 text-white rounded-full flex items-center justify-center text-xs">✓</span>
+                      ) : (
+                        <span className="w-5 h-5 border-2 border-slate-200 rounded-full"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Récapitulatif produits */}
+            <div className="mb-5 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Vos produits</p>
               {Object.entries(cart).filter(([_, q]) => q > 0).map(([id, q]) => {
                 const p = products.find(prod => prod.id === id);
                 return (
@@ -178,20 +253,21 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
                   </div>
                 );
               })}
-              <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100">
+              <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-200">
                 <span className="font-bold text-slate-800">Total à payer sur place</span>
                 <span className="font-black text-orange-600 text-xl">{total} €</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Coordonnées */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
                 <input 
                   type="text" 
                   required 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
-                  className="w-full p-4 bg-slate-50 text-slate-800 border-2 border-slate-100 rounded-2xl focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-medium placeholder:font-normal placeholder:text-slate-400" 
+                  className="w-full p-3.5 bg-slate-50 text-slate-800 border-2 border-slate-100 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-medium placeholder:font-normal placeholder:text-slate-400 text-sm" 
                   placeholder="Votre Prénom & Nom" 
                 />
               </div>
@@ -201,7 +277,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
                   required 
                   value={phone} 
                   onChange={e => setPhone(e.target.value)} 
-                  className="w-full p-4 bg-slate-50 text-slate-800 border-2 border-slate-100 rounded-2xl focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-medium placeholder:font-normal placeholder:text-slate-400" 
+                  className="w-full p-3.5 bg-slate-50 text-slate-800 border-2 border-slate-100 rounded-xl focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-medium placeholder:font-normal placeholder:text-slate-400 text-sm" 
                   placeholder="Numéro de téléphone" 
                 />
               </div>
@@ -209,9 +285,9 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
               <button 
                 type="submit" 
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-lg py-4 rounded-2xl transition-transform active:scale-95 shadow-lg shadow-orange-200/50 mt-4 disabled:opacity-70 disabled:active:scale-100"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black text-base py-4 rounded-xl transition-transform active:scale-95 shadow-lg shadow-orange-200/50 mt-2 disabled:opacity-70 disabled:active:scale-100"
               >
-                {loading ? "Validation..." : "Confirmer"}
+                {loading ? "Validation..." : "Confirmer ma commande"}
               </button>
             </form>
           </div>

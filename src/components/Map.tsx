@@ -18,7 +18,11 @@ interface Point {
   name: string;
   lat: number;
   lng: number;
+  dayOfWeek?: number;
+  timeSlot?: string;
 }
+
+const DAYS_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
 interface Product {
   id: string;
@@ -30,6 +34,8 @@ interface Product {
 // Composant React injecté dans la bulle Leaflet
 function PopupContent({ point, products, onValidate }: { point: Point, products: Product[], onValidate: (cart: Record<string, number>) => void }) {
   const [cart, setCart] = useState<Record<string, number>>({});
+
+  const dayName = point.dayOfWeek !== undefined ? DAYS_FR[point.dayOfWeek] : "";
 
   const updateCart = (productId: string, delta: number) => {
     setCart(prev => {
@@ -44,8 +50,15 @@ function PopupContent({ point, products, onValidate }: { point: Point, products:
   }, 0);
 
   return (
-    <div className="font-sans min-w-[200px] p-1">
-      <strong className="text-lg text-slate-800 block mb-3 border-b pb-2">{point.name}</strong>
+    <div className="font-sans min-w-[210px] p-1">
+      <div className="mb-2 pb-2 border-b border-slate-100">
+        <strong className="text-base text-slate-800 block leading-tight">{point.name}</strong>
+        {dayName && (
+          <span className="inline-flex items-center gap-1 mt-1 bg-amber-50 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md border border-amber-200">
+            🚚 Tous les {dayName}s ({point.timeSlot || "Créneau à définir"})
+          </span>
+        )}
+      </div>
       
       <div className="space-y-1 mb-3 max-h-[40vh] overflow-y-auto pr-1">
         {products.map(p => {

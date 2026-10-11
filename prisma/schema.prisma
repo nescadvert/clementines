@@ -13,6 +13,8 @@ model DeliveryPoint {
   name      String
   lat       Float
   lng       Float
+  dayOfWeek Int      @default(2) // 1=Lundi, 2=Mardi, 3=Mercredi, 4=Jeudi, 5=Vendredi, 6=Samedi, 0=Dimanche
+  timeSlot  String   @default("16h30 - 18h00")
   orders    Order[]
   createdAt DateTime @default(now())
 }
@@ -32,6 +34,7 @@ model Order {
   customerPhone   String
   totalPrice      Float
   status          String        @default("PENDING")
+  deliveryDate    String?
   deliveryPointId String
   deliveryPoint   DeliveryPoint @relation(fields: [deliveryPointId], references: [id])
   items           OrderItem[]
