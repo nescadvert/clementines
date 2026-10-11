@@ -5,6 +5,7 @@ import AdminLoginForm from "./AdminLoginForm";
 import LogoutButton from "./LogoutButton";
 import PointManager from "./PointManager";
 import ProductManager from "./ProductManager";
+import BroadcastManager from "./BroadcastManager";
 
 export const instant = false;
 
@@ -69,7 +70,10 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        {/* 1. Gestionnaire des Points de livraison & Tournées */}
+        {/* 1. Module de Relance par Tournée */}
+        <BroadcastManager orders={orders} points={points} />
+
+        {/* 2. Gestionnaire des Points de livraison & Tournées */}
         <PointManager points={points} />
 
         {/* 2. Gestionnaire des Produits */}
