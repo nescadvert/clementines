@@ -100,6 +100,7 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
       {/* Bouton Admin flottant */}
       <Link 
         href="/admin" 
+        prefetch={false}
         className="absolute top-4 right-4 z-[400] bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg border border-slate-200 text-sm font-bold text-slate-500 hover:text-orange-600 transition-colors"
       >
         ⚙️ Admin
