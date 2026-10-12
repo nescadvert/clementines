@@ -7,6 +7,20 @@ const FALLBACK_PRICES: Record<string, number> = {
   prod3: 5.00
 };
 
+// Nettoie et formate les numéros au format international attendu par Brevo/SMS (ex: 33603172991)
+function formatPhoneForSms(rawPhone: string): string {
+  let cleaned = rawPhone.replace(/\D/g, ""); // Enlève espaces, points, tirets
+  if (cleaned.startsWith("0033")) {
+    cleaned = cleaned.slice(2);
+  } else if (cleaned.startsWith("0") && cleaned.length === 10) {
+    cleaned = "33" + cleaned.slice(1);
+  } else if (!cleaned.startsWith("33") && cleaned.length === 9) {
+    cleaned = "33" + cleaned;
+  }
+  return cleaned;
+}
+
+
 export async function createOrder(data: {
   name: string;
   phone: string;
@@ -67,8 +81,9 @@ export async function createOrder(data: {
             event: 'NEW_ORDER',
             orderId: order.id,
             customerName: data.name,
-            customerPhone: data.phone,
+            customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
+
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             items: itemDetails,
@@ -99,8 +114,9 @@ export async function createOrder(data: {
             event: 'NEW_ORDER',
             orderId: 'preview_' + Date.now(),
             customerName: data.name,
-            customerPhone: data.phone,
+            customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
+
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             items: Object.entries(data.items).map(([id, q]) => `${q}x ${id}`).join(', '),

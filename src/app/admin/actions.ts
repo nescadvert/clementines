@@ -159,8 +159,9 @@ export async function testMakeWebhook() {
         event: "TEST_ORDER",
         orderId: "test_12345",
         customerName: "Marie Dupont (Test)",
-        customerPhone: "0603172991",
+        customerPhone: "33603172991",
         totalPrice: 25,
+
 
         deliveryPoint: "Place de la Mairie (Test)",
         deliveryDate: "Mardi prochain (16h30 - 18h00)",
