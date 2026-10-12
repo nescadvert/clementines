@@ -63,8 +63,9 @@ export default function WebhookConfig({ currentWebhookUrl }: { currentWebhookUrl
 {`{
   "event": "NEW_ORDER",
   "customerName": "Jean Dupont",
-  "customerPhone": "0612345678",
+  "customerPhone": "0603172991",
   "totalPrice": 30,
+
   "deliveryPoint": "Place du Village, Moriani",
   "deliveryDate": "Mardi 14 Octobre (16h30 - 18h00)",
   "items": "2x Plateau 5kg"
