@@ -56,8 +56,9 @@ export async function createOrder(data: {
       .join(', ');
 
     // 🔗 DÉCLENCHEMENT DU SCÉNARIO MAKE (Webhook)
-    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL;
+    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
+
       try {
         await fetch(makeWebhookUrl, {
           method: 'POST',
@@ -87,8 +88,9 @@ export async function createOrder(data: {
     }
 
     // Même en mode secours, tenter d'envoyer à Make si configuré
-    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL;
+    const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
+
       try {
         await fetch(makeWebhookUrl, {
           method: 'POST',

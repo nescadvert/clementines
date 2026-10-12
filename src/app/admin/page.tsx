@@ -74,7 +74,8 @@ export default async function AdminPage() {
         </div>
 
         {/* Module d'automatisation Make (SMS & Webhooks) */}
-        <WebhookConfig currentWebhookUrl={process.env.MAKE_WEBHOOK_URL} />
+        <WebhookConfig currentWebhookUrl={process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e"} />
+
 
         {/* 1. Module de Relance par Tournée */}
         <BroadcastManager orders={orders} points={points} />

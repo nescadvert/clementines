@@ -145,8 +145,9 @@ export async function deleteOrder(id: string) {
 }
 
 export async function testMakeWebhook() {
-  const url = process.env.MAKE_WEBHOOK_URL;
+  const url = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
   if (!url) {
+
     return { success: false, error: "Variable MAKE_WEBHOOK_URL non configurée." };
   }
 
