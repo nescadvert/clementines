@@ -64,11 +64,36 @@ export async function createOrder(data: {
     deliveryPointName = order.deliveryPoint?.name || deliveryPointName;
     const tourneeName = (order.deliveryPoint as any)?.tournee || "Tournée Bastia";
 
-    // Récupérer le nom des produits commandés pour le SMS
+    // Récupérer le nom des produits commandés pour le SMS et générer les variables individuelles
+    const productQuantities: Record<string, number> = {};
+    const productDetailsList: any[] = [];
+
     const itemDetails = Object.entries(data.items)
+      .filter(([_, q]) => q > 0)
       .map(([productId, quantity]) => {
         const prod = products.find(p => p.id === productId);
-        return `${quantity}x ${prod?.name || 'Produit'}`;
+        const name = prod?.name || 'Produit';
+        const desc = prod?.description ? ` (${prod.description})` : '';
+        const fullName = `${name}${desc}`;
+
+        // Clé formatée pour Make (ex: quantite_clementines, quantite_noisettes)
+        const cleanKey = "quantite_" + (prod?.name || productId)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_|_$/g, "");
+
+        productQuantities[cleanKey] = (productQuantities[cleanKey] || 0) + quantity;
+        productDetailsList.push({
+          nom: fullName,
+          quantite: quantity,
+          prixUnitaire: prod?.price || 0,
+          total: (prod?.price || 0) * quantity
+        });
+
+        return `${quantity}x ${fullName}`;
       })
       .join(', ');
 
@@ -85,10 +110,13 @@ export async function createOrder(data: {
             customerName: data.name,
             customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
+            montantTotal: `${totalPrice} €`,
             tournee: tourneeName,
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             items: itemDetails,
+            ...productQuantities,
+            produits: productDetailsList,
             createdAt: new Date().toISOString()
           })
         });
@@ -117,6 +145,7 @@ export async function createOrder(data: {
             customerName: data.name,
             customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
+            montantTotal: `${totalPrice} €`,
             tournee: "Tournée Bastia",
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
@@ -129,6 +158,7 @@ export async function createOrder(data: {
       }
     }
   }
+
 
 
   // Simulation notification console

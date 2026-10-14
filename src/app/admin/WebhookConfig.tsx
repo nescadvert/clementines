@@ -64,12 +64,16 @@ export default function WebhookConfig({ currentWebhookUrl }: { currentWebhookUrl
   "event": "NEW_ORDER",
   "customerName": "Jean Dupont",
   "customerPhone": "33603172991",
-  "totalPrice": 30,
+  "totalPrice": 29,
+  "montantTotal": "29 €",
   "tournee": "Tournée Bastia",
   "deliveryPoint": "Place du Village, Moriani",
   "deliveryDate": "Mardi 14 Octobre (16h30 - 18h00)",
-  "items": "2x Plateau 5kg"
+  "items": "2x Clémentines (Les 6Kg), 1x Noisettes (Le Kg)",
+  "quantite_clementines_6kg": 2,
+  "quantite_noisettes": 1
 }`}
+
 
         </div>
         <p className="text-[11px] text-slate-500 mt-2">

@@ -165,12 +165,20 @@ export async function testMakeWebhook() {
         orderId: "test_12345",
         customerName: "Marie Dupont (Test)",
         customerPhone: "33603172991",
-        totalPrice: 25,
+        totalPrice: 29,
+        montantTotal: "29 €",
         tournee: "Tournée Bastia",
         deliveryPoint: "Place de la Mairie (Test)",
         deliveryDate: "Mardi prochain (16h30 - 18h00)",
-        items: "1x Plateau 5kg Clémentines",
+        items: "2x Clémentines de Corse (Les 6Kg), 1x Noisettes (Le Kg)",
+        quantite_clementines_6kg: 2,
+        quantite_noisettes: 1,
+        produits: [
+          { nom: "Clémentines de Corse (Les 6Kg)", quantite: 2, prixUnitaire: 12 },
+          { nom: "Noisettes (Le Kg)", quantite: 1, prixUnitaire: 5 }
+        ],
         createdAt: new Date().toISOString()
+
 
       }),
     });
