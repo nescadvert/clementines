@@ -21,7 +21,9 @@ interface Point {
   lng: number;
   dayOfWeek?: number;
   timeSlot?: string;
+  tournee?: string;
 }
+
 
 interface Product {
   id: string;
@@ -343,9 +345,19 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
             
             {/* Lieu */}
             <div className="bg-green-50 rounded-2xl p-3.5 flex flex-col gap-1 text-green-800 mb-4 border border-green-100">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-green-600/80">Lieu de livraison</p>
+              <div className="flex justify-between items-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-green-600/80">Lieu de livraison</p>
+                {point?.tournee && (
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                    point.tournee.includes("Balagne") ? "bg-emerald-100 text-emerald-800 border border-emerald-200" : "bg-blue-100 text-blue-800 border border-blue-200"
+                  }`}>
+                    {point.tournee}
+                  </span>
+                )}
+              </div>
               <p className="font-bold flex items-center gap-2 text-sm sm:text-base">📍 {point?.name}</p>
             </div>
+
 
             {/* Sélecteur des 3 prochaines dates de livraison */}
             <div className="mb-5">

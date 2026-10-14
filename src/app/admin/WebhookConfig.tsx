@@ -63,13 +63,14 @@ export default function WebhookConfig({ currentWebhookUrl }: { currentWebhookUrl
 {`{
   "event": "NEW_ORDER",
   "customerName": "Jean Dupont",
-  "customerPhone": "0603172991",
+  "customerPhone": "33603172991",
   "totalPrice": 30,
-
+  "tournee": "Tournée Bastia",
   "deliveryPoint": "Place du Village, Moriani",
   "deliveryDate": "Mardi 14 Octobre (16h30 - 18h00)",
   "items": "2x Plateau 5kg"
 }`}
+
         </div>
         <p className="text-[11px] text-slate-500 mt-2">
           👉 Dans Make, créez un déclencheur <strong>Webhooks &gt; Custom webhook</strong>, copiez l'URL obtenue, et ajoutez la variable <code className="bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-mono">MAKE_WEBHOOK_URL</code> dans vos paramètres Vercel ou dans votre fichier <code className="bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-mono">.env</code>.

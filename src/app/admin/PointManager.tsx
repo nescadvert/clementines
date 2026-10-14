@@ -27,6 +27,7 @@ export default function PointManager({ points }: { points: any[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
+  const [tournee, setTournee] = useState("Tournée Bastia");
   const [dayOfWeek, setDayOfWeek] = useState(2); // Mardi par défaut
   const [timeSlot, setTimeSlot] = useState("16h30 - 18h00");
   const [lat, setLat] = useState<number | null>(42.15);
@@ -35,6 +36,7 @@ export default function PointManager({ points }: { points: any[] }) {
 
   const resetForm = () => {
     setName("");
+    setTournee("Tournée Bastia");
     setDayOfWeek(2);
     setTimeSlot("16h30 - 18h00");
     setLat(null);
@@ -53,6 +55,7 @@ export default function PointManager({ points }: { points: any[] }) {
   const handleStartEdit = (p: any) => {
     setEditingId(p.id);
     setName(p.name);
+    setTournee(p.tournee || "Tournée Bastia");
     setDayOfWeek(p.dayOfWeek ?? 2);
     setTimeSlot(p.timeSlot || "16h30 - 18h00");
     setLat(p.lat);
@@ -72,6 +75,7 @@ export default function PointManager({ points }: { points: any[] }) {
     if (editingId) {
       res = await updateDeliveryPoint(editingId, {
         name,
+        tournee,
         lat,
         lng,
         dayOfWeek: Number(dayOfWeek),
@@ -80,12 +84,14 @@ export default function PointManager({ points }: { points: any[] }) {
     } else {
       res = await createDeliveryPoint({
         name,
+        tournee,
         lat,
         lng,
         dayOfWeek: Number(dayOfWeek),
         timeSlot,
       });
     }
+
 
     if (res.success) {
       resetForm();
@@ -134,7 +140,7 @@ export default function PointManager({ points }: { points: any[] }) {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Nom du lieu / village</label>
               <input
@@ -145,6 +151,18 @@ export default function PointManager({ points }: { points: any[] }) {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 font-medium"
               />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tournée (Secteur)</label>
+              <select
+                value={tournee}
+                onChange={(e) => setTournee(e.target.value)}
+                className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 font-bold text-slate-800"
+              >
+                <option value="Tournée Bastia">🔵 Tournée Bastia</option>
+                <option value="Tournée Balagne">🟢 Tournée Balagne</option>
+              </select>
             </div>
 
             <div>
@@ -174,6 +192,7 @@ export default function PointManager({ points }: { points: any[] }) {
               />
             </div>
           </div>
+
 
           {/* Sélecteur de position sur carte */}
           <div>
@@ -235,14 +254,24 @@ export default function PointManager({ points }: { points: any[] }) {
                     </button>
                   </div>
                 </div>
-                <div className="mt-2 space-y-1">
-                  <p className="text-xs font-bold text-orange-700 bg-orange-100/60 px-2 py-0.5 rounded-md inline-block">
-                    🚚 {day} ({p.timeSlot || "Créneau"})
-                  </p>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                      (p.tournee || "").includes("Balagne")
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : "bg-blue-100 text-blue-800 border border-blue-200"
+                    }`}>
+                      {p.tournee || "Tournée Bastia"}
+                    </span>
+                    <span className="text-xs font-bold text-orange-700 bg-orange-100/60 px-2 py-0.5 rounded-md inline-block">
+                      🚚 {day} ({p.timeSlot || "Créneau"})
+                    </span>
+                  </div>
                   <p className="text-[10px] text-slate-400 font-mono">
                     GPS: {p.lat.toFixed(4)}, {p.lng.toFixed(4)}
                   </p>
                 </div>
+
               </div>
             </div>
           );

@@ -20,7 +20,9 @@ interface Point {
   lng: number;
   dayOfWeek?: number;
   timeSlot?: string;
+  tournee?: string;
 }
+
 
 const DAYS_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
@@ -52,13 +54,25 @@ function PopupContent({ point, products, onValidate }: { point: Point, products:
   return (
     <div className="font-sans min-w-[210px] p-1">
       <div className="mb-2 pb-2 border-b border-slate-100">
-        <strong className="text-base text-slate-800 block leading-tight">{point.name}</strong>
+        <div className="flex items-center justify-between gap-1 flex-wrap mb-1">
+          <strong className="text-base text-slate-800 leading-tight">{point.name}</strong>
+          {point.tournee && (
+            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+              point.tournee.includes("Balagne")
+                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                : "bg-blue-100 text-blue-800 border border-blue-200"
+            }`}>
+              {point.tournee}
+            </span>
+          )}
+        </div>
         {dayName && (
-          <span className="inline-flex items-center gap-1 mt-1 bg-amber-50 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md border border-amber-200">
+          <span className="inline-flex items-center gap-1 mt-0.5 bg-amber-50 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md border border-amber-200">
             🚚 Tous les {dayName}s ({point.timeSlot || "Créneau à définir"})
           </span>
         )}
       </div>
+
       
       <div className="space-y-1 mb-3 max-h-[40vh] overflow-y-auto pr-1">
         {products.map(p => {

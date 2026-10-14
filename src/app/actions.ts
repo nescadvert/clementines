@@ -61,6 +61,9 @@ export async function createOrder(data: {
       }
     });
 
+    deliveryPointName = order.deliveryPoint?.name || deliveryPointName;
+    const tourneeName = (order.deliveryPoint as any)?.tournee || "Tournée Bastia";
+
     // Récupérer le nom des produits commandés pour le SMS
     const itemDetails = Object.entries(data.items)
       .map(([productId, quantity]) => {
@@ -72,7 +75,6 @@ export async function createOrder(data: {
     // 🔗 DÉCLENCHEMENT DU SCÉNARIO MAKE (Webhook)
     const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
-
       try {
         await fetch(makeWebhookUrl, {
           method: 'POST',
@@ -83,7 +85,7 @@ export async function createOrder(data: {
             customerName: data.name,
             customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
-
+            tournee: tourneeName,
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             items: itemDetails,
@@ -105,7 +107,6 @@ export async function createOrder(data: {
     // Même en mode secours, tenter d'envoyer à Make si configuré
     const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
-
       try {
         await fetch(makeWebhookUrl, {
           method: 'POST',
@@ -116,7 +117,7 @@ export async function createOrder(data: {
             customerName: data.name,
             customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
-
+            tournee: "Tournée Bastia",
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             items: Object.entries(data.items).map(([id, q]) => `${q}x ${id}`).join(', '),
@@ -128,6 +129,7 @@ export async function createOrder(data: {
       }
     }
   }
+
 
   // Simulation notification console
   const dateInfo = data.deliveryDate ? `pour le ${data.deliveryDate}` : "";

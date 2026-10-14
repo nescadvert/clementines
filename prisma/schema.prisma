@@ -15,9 +15,11 @@ model DeliveryPoint {
   lng       Float
   dayOfWeek Int      @default(2) // 1=Lundi, 2=Mardi, 3=Mercredi, 4=Jeudi, 5=Vendredi, 6=Samedi, 0=Dimanche
   timeSlot  String   @default("16h30 - 18h00")
+  tournee   String   @default("Tournée Bastia")
   orders    Order[]
   createdAt DateTime @default(now())
 }
+
 
 model Product {
   id          String      @id @default(cuid())

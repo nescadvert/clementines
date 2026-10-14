@@ -31,6 +31,7 @@ export async function createDeliveryPoint(data: {
   lng: number;
   dayOfWeek: number;
   timeSlot: string;
+  tournee?: string;
 }) {
   try {
     await prisma.deliveryPoint.create({
@@ -40,6 +41,7 @@ export async function createDeliveryPoint(data: {
         lng: data.lng,
         dayOfWeek: data.dayOfWeek,
         timeSlot: data.timeSlot,
+        tournee: data.tournee || "Tournée Bastia",
       },
     });
     revalidatePath("/");
@@ -59,6 +61,7 @@ export async function updateDeliveryPoint(
     lng: number;
     dayOfWeek: number;
     timeSlot: string;
+    tournee?: string;
   }
 ) {
   try {
@@ -70,6 +73,7 @@ export async function updateDeliveryPoint(
         lng: data.lng,
         dayOfWeek: data.dayOfWeek,
         timeSlot: data.timeSlot,
+        tournee: data.tournee || "Tournée Bastia",
       },
     });
     revalidatePath("/");
@@ -80,6 +84,7 @@ export async function updateDeliveryPoint(
     return { success: false, error: err.message };
   }
 }
+
 
 export async function deleteDeliveryPoint(id: string) {
   try {
@@ -161,12 +166,12 @@ export async function testMakeWebhook() {
         customerName: "Marie Dupont (Test)",
         customerPhone: "33603172991",
         totalPrice: 25,
-
-
+        tournee: "Tournée Bastia",
         deliveryPoint: "Place de la Mairie (Test)",
         deliveryDate: "Mardi prochain (16h30 - 18h00)",
         items: "1x Plateau 5kg Clémentines",
         createdAt: new Date().toISOString()
+
       }),
     });
 
