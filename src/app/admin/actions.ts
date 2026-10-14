@@ -41,7 +41,7 @@ export async function createDeliveryPoint(data: {
         lng: data.lng,
         dayOfWeek: data.dayOfWeek,
         timeSlot: data.timeSlot,
-        tournee: data.tournee || "Tournée Bastia",
+        tournee: data.tournee || "Bastia",
       },
     });
     revalidatePath("/");
@@ -73,9 +73,10 @@ export async function updateDeliveryPoint(
         lng: data.lng,
         dayOfWeek: data.dayOfWeek,
         timeSlot: data.timeSlot,
-        tournee: data.tournee || "Tournée Bastia",
+        tournee: data.tournee || "Bastia",
       },
     });
+
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -167,8 +168,9 @@ export async function testMakeWebhook() {
         customerPhone: "33603172991",
         totalPrice: 29,
         montantTotal: "29 €",
-        tournee: "Tournée Bastia",
+        tournee: "Bastia",
         deliveryPoint: "Place de la Mairie (Test)",
+
         deliveryDate: "Mardi 21 Octobre",
         dateLivraisonExacte: "2026-10-21",
         items: "2x Clémentines de Corse (Les 6Kg), 1x Noisettes (Le Kg)",

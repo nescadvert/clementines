@@ -27,7 +27,7 @@ export default function PointManager({ points }: { points: any[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
-  const [tournee, setTournee] = useState("Tournée Bastia");
+  const [tournee, setTournee] = useState("Bastia");
   const [dayOfWeek, setDayOfWeek] = useState(2); // Mardi par défaut
   const [timeSlot, setTimeSlot] = useState("16h30 - 18h00");
   const [lat, setLat] = useState<number | null>(42.15);
@@ -36,7 +36,7 @@ export default function PointManager({ points }: { points: any[] }) {
 
   const resetForm = () => {
     setName("");
-    setTournee("Tournée Bastia");
+    setTournee("Bastia");
     setDayOfWeek(2);
     setTimeSlot("16h30 - 18h00");
     setLat(null);
@@ -55,9 +55,10 @@ export default function PointManager({ points }: { points: any[] }) {
   const handleStartEdit = (p: any) => {
     setEditingId(p.id);
     setName(p.name);
-    setTournee(p.tournee || "Tournée Bastia");
+    setTournee(p.tournee || "Bastia");
     setDayOfWeek(p.dayOfWeek ?? 2);
     setTimeSlot(p.timeSlot || "16h30 - 18h00");
+
     setLat(p.lat);
     setLng(p.lng);
     setIsOpen(true);
@@ -160,10 +161,11 @@ export default function PointManager({ points }: { points: any[] }) {
                 onChange={(e) => setTournee(e.target.value)}
                 className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-500 font-bold text-slate-800"
               >
-                <option value="Tournée Bastia">🔵 Tournée Bastia</option>
-                <option value="Tournée Balagne">🟢 Tournée Balagne</option>
+                <option value="Bastia">🔵 Bastia</option>
+                <option value="Balagne">🟢 Balagne</option>
               </select>
             </div>
+
 
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Jour de passage</label>
@@ -261,8 +263,9 @@ export default function PointManager({ points }: { points: any[] }) {
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                         : "bg-blue-100 text-blue-800 border border-blue-200"
                     }`}>
-                      {p.tournee || "Tournée Bastia"}
+                      {p.tournee || "Bastia"}
                     </span>
+
                     <span className="text-xs font-bold text-orange-700 bg-orange-100/60 px-2 py-0.5 rounded-md inline-block">
                       🚚 {day} ({p.timeSlot || "Créneau"})
                     </span>

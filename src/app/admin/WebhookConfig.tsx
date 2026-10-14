@@ -66,8 +66,9 @@ export default function WebhookConfig({ currentWebhookUrl }: { currentWebhookUrl
   "customerPhone": "33603172991",
   "totalPrice": 29,
   "montantTotal": "29 €",
-  "tournee": "Tournée Bastia",
+  "tournee": "Bastia",
   "deliveryPoint": "Place du Village, Moriani",
+
   "deliveryDate": "Mardi 21 Octobre",
   "dateLivraisonExacte": "2026-10-21",
   "items": "2x Clémentines (Les 6Kg), 1x Noisettes (Le Kg)",

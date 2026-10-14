@@ -4,11 +4,12 @@ import CheckoutClient from "@/components/CheckoutClient";
 export const instant = false;
 
 const DEFAULT_POINTS = [
-  { id: "p1", name: "Bastia (Place Saint-Nicolas)", lat: 42.7028, lng: 9.4500, dayOfWeek: 2, timeSlot: "16h00 - 18h00", tournee: "Tournée Bastia" },
-  { id: "p2", name: "Ajaccio (Marché)", lat: 41.9267, lng: 8.7369, dayOfWeek: 4, timeSlot: "14h30 - 17h00", tournee: "Tournée Bastia" },
-  { id: "p3", name: "Porto-Vecchio (Port)", lat: 41.5910, lng: 9.2795, dayOfWeek: 4, timeSlot: "09h00 - 11h30", tournee: "Tournée Bastia" },
-  { id: "p4", name: "Corte (Centre-ville)", lat: 42.3094, lng: 9.1490, dayOfWeek: 2, timeSlot: "10h30 - 12h00", tournee: "Tournée Bastia" }
+  { id: "p1", name: "Bastia (Place Saint-Nicolas)", lat: 42.7028, lng: 9.4500, dayOfWeek: 2, timeSlot: "16h00 - 18h00", tournee: "Bastia" },
+  { id: "p2", name: "Ajaccio (Marché)", lat: 41.9267, lng: 8.7369, dayOfWeek: 4, timeSlot: "14h30 - 17h00", tournee: "Bastia" },
+  { id: "p3", name: "Porto-Vecchio (Port)", lat: 41.5910, lng: 9.2795, dayOfWeek: 4, timeSlot: "09h00 - 11h30", tournee: "Bastia" },
+  { id: "p4", name: "Corte (Centre-ville)", lat: 42.3094, lng: 9.1490, dayOfWeek: 2, timeSlot: "10h30 - 12h00", tournee: "Bastia" }
 ];
+
 
 const DEFAULT_PRODUCTS = [
   { id: "prod1", name: "Clémentines de Corse", description: "au kg", price: 2.50 },

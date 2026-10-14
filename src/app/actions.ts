@@ -81,7 +81,8 @@ export async function createOrder(data: {
     });
 
     deliveryPointName = order.deliveryPoint?.name || deliveryPointName;
-    const tourneeName = (order.deliveryPoint as any)?.tournee || "Tournée Bastia";
+    const tourneeName = (order.deliveryPoint as any)?.tournee || "Bastia";
+
 
     // Récupérer le nom des produits commandés pour le SMS et générer les variables individuelles
     const productQuantities: Record<string, number> = {};
@@ -172,8 +173,9 @@ export async function createOrder(data: {
             customerPhone: formatPhoneForSms(data.phone),
             totalPrice: totalPrice,
             montantTotal: `${totalPrice} €`,
-            tournee: "Tournée Bastia",
+            tournee: "Bastia",
             deliveryPoint: deliveryPointName,
+
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
             dateLivraisonExacte: exactDateIso,
             deliveryDateIso: exactDateIso,
