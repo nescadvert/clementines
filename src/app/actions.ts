@@ -20,6 +20,23 @@ function formatPhoneForSms(rawPhone: string): string {
   return cleaned;
 }
 
+function parseFrenchDateToIso(deliveryDateStr?: string | null): string {
+
+  if (!deliveryDateStr) return "";
+  const FRENCH_MONTHS: Record<string, string> = {
+    janvier: "01", fevrier: "02", février: "02", mars: "03", avril: "04",
+    mai: "05", juin: "06", juillet: "07", aout: "08", août: "08",
+    septembre: "09", octobre: "10", novembre: "11", decembre: "12", décembre: "12"
+  };
+  const match = deliveryDateStr.match(/(\d{1,2})\s+([a-zA-Zàâäéèêëîïôöùûüç]+)/i);
+  if (!match) return "";
+  const day = parseInt(match[1]);
+  const dayStr = day < 10 ? `0${day}` : `${day}`;
+  const monthStr = FRENCH_MONTHS[match[2].toLowerCase()];
+  if (!monthStr) return "";
+  const year = new Date().getFullYear();
+  return `${year}-${monthStr}-${dayStr}`;
+}
 
 export async function createOrder(data: {
   name: string;
@@ -27,7 +44,9 @@ export async function createOrder(data: {
   items: Record<string, number>;
   deliveryPointId: string;
   deliveryDate?: string;
+  deliveryDateIso?: string;
 }) {
+
   let totalPrice = 0;
   let deliveryPointName = "Point de livraison";
 
@@ -97,6 +116,9 @@ export async function createOrder(data: {
       })
       .join(', ');
 
+    // Déterminer la date calendaire exacte au format ISO (ex: 2026-10-20)
+    const exactDateIso = data.deliveryDateIso || parseFrenchDateToIso(data.deliveryDate) || new Date().toISOString().split('T')[0];
+
     // 🔗 DÉCLENCHEMENT DU SCÉNARIO MAKE (Webhook)
     const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
@@ -114,6 +136,8 @@ export async function createOrder(data: {
             tournee: tourneeName,
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
+            dateLivraisonExacte: exactDateIso,
+            deliveryDateIso: exactDateIso,
             items: itemDetails,
             ...productQuantities,
             produits: productDetailsList,
@@ -132,6 +156,8 @@ export async function createOrder(data: {
       totalPrice += (FALLBACK_PRICES[productId] || 10) * quantity;
     }
 
+    const exactDateIso = data.deliveryDateIso || parseFrenchDateToIso(data.deliveryDate) || new Date().toISOString().split('T')[0];
+
     // Même en mode secours, tenter d'envoyer à Make si configuré
     const makeWebhookUrl = process.env.MAKE_WEBHOOK_URL || "https://hook.eu1.make.com/rfim44e728nrsx16wxpai8o40j2k0b4e";
     if (makeWebhookUrl) {
@@ -149,6 +175,8 @@ export async function createOrder(data: {
             tournee: "Tournée Bastia",
             deliveryPoint: deliveryPointName,
             deliveryDate: data.deliveryDate || 'Prochaine tournée',
+            dateLivraisonExacte: exactDateIso,
+            deliveryDateIso: exactDateIso,
             items: Object.entries(data.items).map(([id, q]) => `${q}x ${id}`).join(', '),
             createdAt: new Date().toISOString()
           })
@@ -158,6 +186,7 @@ export async function createOrder(data: {
       }
     }
   }
+
 
 
 

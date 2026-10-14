@@ -187,6 +187,12 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
     e.preventDefault();
     if (!selectedPoint || Object.keys(cart).length === 0) return;
     setLoading(true);
+
+    const selectedOption = availableDates.find(d => d.label === activeDeliveryDate);
+    const pad = (n: number) => (n < 10 ? "0" + n : n.toString());
+    const deliveryDateIso = selectedOption 
+      ? `${selectedOption.startDate.getFullYear()}-${pad(selectedOption.startDate.getMonth() + 1)}-${pad(selectedOption.startDate.getDate())}`
+      : undefined;
     
     try {
       await createOrder({
@@ -194,9 +200,11 @@ export default function CheckoutClient({ points, products }: { points: Point[], 
         phone,
         items: cart,
         deliveryPointId: selectedPoint,
-        deliveryDate: activeDeliveryDate
+        deliveryDate: activeDeliveryDate,
+        deliveryDateIso,
       });
       setSuccess(true);
+
     } catch (err) {
       console.error(err);
       alert("Une erreur est survenue lors de la commande.");

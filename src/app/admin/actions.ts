@@ -170,7 +170,9 @@ export async function testMakeWebhook() {
         tournee: "Tournée Bastia",
         deliveryPoint: "Place de la Mairie (Test)",
         deliveryDate: "Mardi 21 Octobre",
+        dateLivraisonExacte: "2026-10-21",
         items: "2x Clémentines de Corse (Les 6Kg), 1x Noisettes (Le Kg)",
+
 
         quantite_clementines_6kg: 2,
         quantite_noisettes: 1,

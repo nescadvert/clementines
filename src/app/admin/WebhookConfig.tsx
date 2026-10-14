@@ -69,7 +69,9 @@ export default function WebhookConfig({ currentWebhookUrl }: { currentWebhookUrl
   "tournee": "Tournée Bastia",
   "deliveryPoint": "Place du Village, Moriani",
   "deliveryDate": "Mardi 21 Octobre",
+  "dateLivraisonExacte": "2026-10-21",
   "items": "2x Clémentines (Les 6Kg), 1x Noisettes (Le Kg)",
+
 
   "quantite_clementines_6kg": 2,
   "quantite_noisettes": 1
