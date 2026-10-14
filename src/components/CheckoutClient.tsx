@@ -75,10 +75,11 @@ function getNextDeliveryDates(dayOfWeek: number = 2, timeSlot: string = "16h00 -
       endDate.setHours(times.endH, times.endM, 0, 0);
 
       dates.push({
-        label: `${formatted} (${timeSlot})`,
+        label: formatted,
         startDate,
         endDate
       });
+
     }
     check.setDate(check.getDate() + 1);
   }
